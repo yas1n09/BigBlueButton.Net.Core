@@ -14,4 +14,8 @@
     <ProjectReference Include="..\BigBlueButton.Net.Core\BigBlueButton.Net.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>
