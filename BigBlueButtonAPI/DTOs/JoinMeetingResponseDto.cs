@@ -1,7 +1,8 @@
 ﻿namespace BigBlueButtonAPI.DTOs
 {
-    public class JoinResponseDto
+    public class JoinMeetingResponseDto
     {
+        public JoinMeetingResponseDto() { }
         public string JoinUrl { get; set; }
     }
 }

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -20,7 +17,7 @@ namespace BigBlueButton.Net.Core.Helpers
         {
             if (reader.IsEmptyElement || reader.Read() == false) return; // Eğer öğe boşsa veya okuma başarısızsa, çık.
 
-            while (reader.NodeType != System.Xml.XmlNodeType.EndElement) // Sonlandırıcı öğeye kadar oku.
+            while (reader.NodeType != XmlNodeType.EndElement) // Sonlandırıcı öğeye kadar oku.
             {
                 if (reader.NodeType == XmlNodeType.Element) // Eğer öğe türü elementse
                 {
@@ -36,7 +33,12 @@ namespace BigBlueButton.Net.Core.Helpers
 
         public void WriteXml(XmlWriter writer)
         {
-            throw new NotImplementedException();
+            foreach (var kvp in this) // Tüm anahtar-değer çiftlerini döngüye al.
+            {
+                writer.WriteStartElement(kvp.Key); // Anahtar adıyla öğe başlat.
+                writer.WriteString(kvp.Value); // Değerini yaz.
+                writer.WriteEndElement(); // Öğeyi kapat.
+            }
         }
     }
 }

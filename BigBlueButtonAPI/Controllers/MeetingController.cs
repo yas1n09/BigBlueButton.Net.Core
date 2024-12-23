@@ -74,7 +74,7 @@ namespace BigBlueButtonAPI.Controllers
                     return Content(XmlHelper.XmlErrorResponse("Failed to end meeting.", result.message), "application/xml");
                 }
 
-                var response = new MeetingResponseDto
+                var response = new EndMeetingResponseDto
                 {
                     Message = "Meeting ended successfully."
                 };
@@ -95,7 +95,7 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Join Meeting
         [HttpGet("join")]
-        public async Task<IActionResult> JoinMeeting(string meetingID, string fullName, string password, string role, string token = null)
+        public async Task<IActionResult> JoinMeeting(string meetingID, string fullName, string password)
         {
             try
             {
@@ -106,24 +106,9 @@ namespace BigBlueButtonAPI.Controllers
                     password = password
                 };
 
-                if (!string.IsNullOrEmpty(token))
-                {
-                    var configResult = await client.SetConfigXMLAsync(new SetConfigXMLRequest
-                    {
-                        meetingID = meetingID,
-                        configXML = "<config><modules><localeversion supressWarning=\"false\">0.9.0</localeversion></modules></config>"
-                    });
-
-                    if (configResult.returncode == Returncode.FAILED)
-                    {
-                        return Content(XmlHelper.XmlErrorResponse("Failed to apply configuration.", configResult.message), "application/xml");
-                    }
-
-                    joinRequest.configToken = configResult.configToken;
-                }
-
                 var joinUrl = client.GetJoinMeetingUrl(joinRequest);
-                var response = new JoinResponseDto
+
+                var response = new JoinMeetingResponseDto
                 {
                     JoinUrl = joinUrl
                 };
@@ -142,7 +127,7 @@ namespace BigBlueButtonAPI.Controllers
         }
         #endregion
 
-        #region Check Meeting Running Status
+        #region Is Meeting Running
         [HttpGet("isRunning")]
         public async Task<IActionResult> IsMeetingRunning(string meetingID)
         {
@@ -153,19 +138,17 @@ namespace BigBlueButtonAPI.Controllers
 
             try
             {
-                var request = new IsMeetingRunningRequest
+                var response = await client.IsMeetingRunningAsync(new IsMeetingRunningRequest
                 {
                     meetingID = meetingID
-                };
-
-                var response = await client.IsMeetingRunningAsync(request);
+                });
 
                 if (response == null || response.returncode == Returncode.FAILED)
                 {
-                    return Content(XmlHelper.XmlErrorResponse("Meeting not found or an error occurred.", "Invalid meeting ID."), "application/xml");
+                    return Content(XmlHelper.XmlErrorResponse("Meeting not found.", "Invalid meeting ID."), "application/xml");
                 }
 
-                var responseDto = new MeetingStatusDto
+                var responseDto = new MeetingStatusResponseDto
                 {
                     MeetingID = meetingID,
                     IsRunning = (bool)response.running,
@@ -182,32 +165,6 @@ namespace BigBlueButtonAPI.Controllers
                     Details = ex.Message
                 };
                 return StatusCode(500, XmlHelper.ToXml(errorResponse));
-            }
-        }
-        #endregion
-
-        #region Get All Meetings
-        [HttpGet("all")]
-        public async Task<IActionResult> Index()
-        {
-            try
-            {
-                var meetings = await client.GetMeetingsAsync();
-
-                if (meetings == null || meetings.returncode == Returncode.FAILED)
-                {
-                    return Content(XmlHelper.XmlErrorResponse("No meetings found.", "Meetings list is empty."), "application/xml");
-                }
-
-                return Content(XmlHelper.ToXml(meetings), "application/xml");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, XmlHelper.ToXml(new
-                {
-                    message = "An error occurred while retrieving meetings.",
-                    details = ex.Message
-                }));
             }
         }
         #endregion
@@ -229,15 +186,45 @@ namespace BigBlueButtonAPI.Controllers
                     return Content(XmlHelper.XmlErrorResponse("Failed to retrieve meeting info.", result.message), "application/xml");
                 }
 
-                return Content(XmlHelper.ToXml(result), "application/xml");
+                var response = new MeetingInfoResponseDto
+                {
+                    Message = "Meeting info retrieved successfully.",
+                    Result = result
+                };
+
+                return Content(XmlHelper.ToXml(response), "application/xml");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, XmlHelper.ToXml(new
+                return StatusCode(500, XmlHelper.XmlErrorResponse("An error occurred while retrieving meeting info.", ex.Message));
+            }
+        }
+        #endregion
+
+        #region Get All Meetings
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllMeetings()
+        {
+            try
+            {
+                var meetings = await client.GetMeetingsAsync();
+
+                if (meetings == null || meetings.returncode == Returncode.FAILED)
                 {
-                    message = "An error occurred while retrieving meeting info.",
-                    details = ex.Message
-                }));
+                    return Content(XmlHelper.XmlErrorResponse("No meetings found.", "Meetings list is empty."), "application/xml");
+                }
+
+                var response = new AllMeetingsResponseDto
+                {
+                    Message = "Meetings retrieved successfully.",
+                    Result = meetings
+                };
+
+                return Content(XmlHelper.ToXml(response), "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.XmlErrorResponse("An error occurred while retrieving meetings.", ex.Message));
             }
         }
         #endregion
