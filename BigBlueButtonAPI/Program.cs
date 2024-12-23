@@ -1,4 +1,5 @@
 using BigBlueButton.Net.Core.BigBlueButtonAPIClient;
+using BigBlueButton.Net.Core.Requests;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -38,15 +42,14 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Routing middleware - Zorunlu
+app.UseRouting();
+
+// Yetkilendirme middleware'i
 app.UseAuthorization();
 
+// Rota eþleme
 app.MapControllers(); // Tüm controller rotalarýný otomatik tanýmlar.
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}");
-});
 
 app.Run();

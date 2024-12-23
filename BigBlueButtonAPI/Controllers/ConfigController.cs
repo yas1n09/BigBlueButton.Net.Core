@@ -1,10 +1,13 @@
 ﻿using BigBlueButton.Net.Core.BigBlueButtonAPIClient;
+using BigBlueButton.Net.Core.Helpers;
 using BigBlueButton.Net.Core.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BigBlueButtonAPI.Controllers
 {
-    public class ConfigController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ConfigController : ControllerBase
     {
         private readonly BigBlueButtonAPIClient client;
 
@@ -13,22 +16,73 @@ namespace BigBlueButtonAPI.Controllers
             this.client = client;
         }
 
-        public async Task<ActionResult> GetDefaultConfigXML()
+        #region Get Default Config XML
+        [HttpGet("getDefaultConfig")]
+        public async Task<IActionResult> GetDefaultConfigXML()
         {
-            var result = await client.GetDefaultConfigXMLAsync();
-            return Content(result, "text/xml");
-        }
-
-        public async Task<ActionResult> SetConfigXML(string meetingID)
-        {
-            var setConfigRequest = new SetConfigXMLRequest
+            try
             {
-                meetingID = meetingID,
-                configXML = "<config><modules><localeversion supressWarning=\"false\">0.9.0</localeversion></modules></config>"
-            };
-            var result = await client.SetConfigXMLAsync(setConfigRequest);
-            return Json(result);
-        }
+                var result = await client.GetDefaultConfigXMLAsync();
 
+                if (string.IsNullOrEmpty(result))
+                {
+                    return Content(XmlHelper.XmlErrorResponse("Default configuration could not be retrieved.", "Config XML is empty."), "application/xml");
+                }
+
+                return Content(result, "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.ToXml(new
+                {
+                    message = "An error occurred while retrieving the default configuration.",
+                    details = ex.Message
+                }));
+            }
+        }
+        #endregion
+
+        #region Set Config XML
+        [HttpPost("setConfig")]
+        public async Task<IActionResult> SetConfigXML(string meetingID)
+        {
+            if (string.IsNullOrEmpty(meetingID))
+            {
+                return Content(XmlHelper.XmlErrorResponse("Meeting ID cannot be null or empty.", "Invalid request."), "application/xml");
+            }
+
+            try
+            {
+                var setConfigRequest = new SetConfigXMLRequest
+                {
+                    meetingID = meetingID,
+                    configXML = "<config><modules><localeversion supressWarning=\"false\">0.9.0</localeversion></modules></config>"
+                };
+
+                var result = await client.SetConfigXMLAsync(setConfigRequest);
+
+                if (result.returncode.ToString() == "FAILED")
+                {
+                    return Content(XmlHelper.XmlErrorResponse("Failed to set configuration.", result.message), "application/xml");
+                }
+
+                var successResponse = new
+                {
+                    message = "Configuration set successfully.",
+                    result
+                };
+
+                return Content(XmlHelper.ToXml(successResponse), "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.ToXml(new
+                {
+                    message = "An error occurred while setting the configuration.",
+                    details = ex.Message
+                }));
+            }
+        }
+        #endregion
     }
 }

@@ -35,20 +35,49 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
             var result = await HttpGetAsync<T>(url);
             return result;
         }
+        // Existing code...
+
+        //private async Task<T> HttpGetAsync<T>(string url)
+        //{
+        //    var response = await httpClient.GetAsync(url);
+        //    var xmlOrJson = await response.Content.ReadAsStringAsync();
+        //    if (typeof(T) == typeof(string)) return (T)(object)xmlOrJson;
+
+        //    // Most APIs return XML string.
+        //    // The getRecordingTextTracks API may return JSON string.
+        //    if (xmlOrJson.StartsWith("<"))
+        //    {
+        //        return XmlHelper.FromXml<T>(xmlOrJson);
+        //    }
+        //    else
+        //    {
+        //        var wrapper = JsonConvert.DeserializeObject<ResponseJsonWrapper<T>>(xmlOrJson);
+        //        return wrapper.response;
+        //    }
+        //}
+
         private async Task<T> HttpGetAsync<T>(string url)
         {
+            // HTTP isteği gönder
             var response = await httpClient.GetAsync(url);
+
+            // Yanıtı metin olarak oku
             var xmlOrJson = await response.Content.ReadAsStringAsync();
+
+            // Yanıtı logla
+            Console.WriteLine("Response XML/JSON: " + xmlOrJson);
+
+            // Eğer tip string ise yanıtı direkt döndür
             if (typeof(T) == typeof(string)) return (T)(object)xmlOrJson;
 
-            // Most APIs return XML string.
-            // The getRecordingTextTracks API may return JSON string.
+            // Eğer XML ise deserialize et
             if (xmlOrJson.StartsWith("<"))
             {
                 return XmlHelper.FromXml<T>(xmlOrJson);
             }
             else
             {
+                // JSON formatı varsa işle
                 var wrapper = JsonConvert.DeserializeObject<ResponseJsonWrapper<T>>(xmlOrJson);
                 return wrapper.response;
             }
@@ -121,10 +150,8 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
         /// <returns></returns>
         public async Task<CreateMeetingResponse> CreateMeetingAsync(CreateMeetingRequest request)
         {
-            if (request == null) throw new ArgumentNullException("request");
-
-            //if (string.IsNullOrEmpty(request.attendeePW)) request.attendeePW = HashHelper.Sha1Hash(request.meetingID + "attendeePW");
-            //if (string.IsNullOrEmpty(request.moderatorPW)) request.moderatorPW = HashHelper.Sha1Hash(request.meetingID + "moderatorPW");
+            //if (request == null) throw new ArgumentNullException("request");
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             return await HttpGetAsync<CreateMeetingResponse>("create", request);
         }
@@ -189,11 +216,7 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
         #endregion
 
         #region isMeetingRunning
-        /// <summary>
-        /// Checks whether if a specified meeting is running.
-        /// </summary>
-        /// <param name="request">The request data</param>
-        /// <returns></returns>
+        
         public async Task<IsMeetingRunningResponse> IsMeetingRunningAsync(IsMeetingRunningRequest request)
         {
             if (request == null) throw new ArgumentNullException("request");
@@ -324,6 +347,74 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
             if (request == null) throw new ArgumentNullException("request");
             return await HttpPostFileAsync<PutRecordingTextTrackResponse>("putRecordingTextTrack", request);
         }
+
+        public async Task<bool> IsMeetingRunningAsync(string meetingID)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
+
+        #region EjectParticipant
+        /// <summary>
+        /// Ejects a participant from a meeting.
+        /// </summary>
+        /// <param name="request">The EjectParticipantRequest containing meetingID and userID</param>
+        /// <returns>The response of the eject participant action</returns>
+        public async Task<EjectParticipantResponse> EjectParticipantAsync(EjectParticipantRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrEmpty(request.meetingID)) throw new ArgumentException("MeetingID is required", nameof(request));
+            if (string.IsNullOrEmpty(request.userID)) throw new ArgumentException("UserID is required", nameof(request));
+
+            return await HttpGetAsync<EjectParticipantResponse>("ejectParticipant", request);
+        }
+        #endregion
+
+        #region Modules
+
+        public async Task<EnableModuleResponse> EnableModuleAsync(EnableModuleRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            return await HttpPostAsync<EnableModuleResponse>("enableModule", request);
+        }
+
+        public async Task<DisableModuleResponse> DisableModuleAsync(DisableModuleRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            return await HttpPostAsync<DisableModuleResponse>("disableModule", request);
+        }
+        #endregion
+
+        #region Reporting
+
+        public async Task<GetMeetingStatsResponse> GetMeetingStatsAsync(GetMeetingStatsRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            return await HttpGetAsync<GetMeetingStatsResponse>("getMeetingStats", request);
+        }
+
+        public async Task<ExportMeetingDataResponse> ExportMeetingDataAsync(ExportMeetingDataRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            return await HttpGetAsync<ExportMeetingDataResponse>("exportMeetingData", request);
+        }
+        #endregion
+
+        #region Recording
+
+        // Kayıt Duraklatma
+        public async Task<PauseRecordingResponse> PauseRecordingAsync(PauseRecordingRequest request)
+        {
+            return await HttpPostAsync<PauseRecordingResponse>("pauseRecording", request);
+        }
+
+        // Kayıt Devam Ettirme
+        public async Task<ResumeRecordingResponse> ResumeRecordingAsync(ResumeRecordingRequest request)
+        {
+            return await HttpPostAsync<ResumeRecordingResponse>("resumeRecording", request);
+        }
+
+        #endregion
+
     }
 }

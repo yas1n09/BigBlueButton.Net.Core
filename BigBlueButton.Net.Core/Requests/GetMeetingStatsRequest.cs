@@ -7,12 +7,9 @@ using System.Threading.Tasks;
 
 namespace BigBlueButton.Net.Core.Requests
 {
-    public class GetMeetingInfoRequest : BaseRequest
+    public class GetMeetingStatsRequest : BaseRequest
     {
-        // Gerekli.
-        // Kontrol etmek istediğiniz toplantıyı tanımlayan toplantı kimliği.
+        // İstatistiklerin alınacağı toplantının ID'si
         public string meetingID { get; set; }
-        public string password { get; set; }
     }
-
 }

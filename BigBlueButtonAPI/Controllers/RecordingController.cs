@@ -8,7 +8,9 @@ using System.Text;
 
 namespace BigBlueButtonAPI.Controllers
 {
-    public class RecordingController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class RecordingController : ControllerBase
     {
         private readonly BigBlueButtonAPIClient client;
 
@@ -17,78 +19,162 @@ namespace BigBlueButtonAPI.Controllers
             this.client = client;
         }
 
-        public async Task<ActionResult> Recordings()
+        #region Get All Recordings
+        [HttpGet("all")]
+        public async Task<IActionResult> Index()
         {
-            var result = await client.GetRecordingsAsync();
-            return View(result);
-        }
+            try
+            {
+                var meetings = await client.GetMeetingsAsync();
 
-        public async Task<ActionResult> PublishRecordings(string recordID, string type)
+                if (meetings == null || meetings.returncode == Returncode.FAILED)
+                {
+                    return Content(XmlHelper.XmlErrorResponse("No meetings found.", "Meetings list is empty."), "application/xml");
+                }
+
+                return Content(XmlHelper.ToXml(meetings), "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return Content(XmlHelper.XmlErrorResponse("An error occurred while retrieving meetings.", ex.Message), "application/xml");
+            }
+        }
+        #endregion
+
+        #region Publish Recording
+        [HttpPost("publish")]
+        public async Task<IActionResult> PublishRecording(string recordID, bool publish)
         {
-            var request = new PublishRecordingsRequest
+            var result = await client.PublishRecordingsAsync(new PublishRecordingsRequest
             {
                 recordID = recordID,
-                publish = type == "1"
-            };
-            var result = await client.PublishRecordingsAsync(request);
+                publish = publish
+            });
 
-            if (result.returncode == Returncode.FAILED) return View("Error", result);
-            return RedirectToAction("Recordings");
+            if (result.returncode == Returncode.FAILED)
+            {
+                return Content(XmlHelper.XmlErrorResponse("Failed to publish recording.", result.message), "application/xml");
+            }
+
+            return Content(XmlHelper.ToXml(new { message = "Recording published successfully.", result }), "application/xml");
         }
+        #endregion
 
-        public async Task<ActionResult> DeleteRecordings(string recordID)
+        #region Delete Recording
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteRecordings(string recordID)
         {
-            var request = new DeleteRecordingsRequest
+            var result = await client.DeleteRecordingsAsync(new DeleteRecordingsRequest
             {
                 recordID = recordID
-            };
-            var result = await client.DeleteRecordingsAsync(request);
+            });
 
-            if (result.returncode == Returncode.FAILED) return View("Error", result);
-            return RedirectToAction("Recordings");
+            if (result.returncode == Returncode.FAILED)
+            {
+                return Content(XmlHelper.XmlErrorResponse("Failed to delete recording.", result.message), "application/xml");
+            }
+
+            return Content(XmlHelper.ToXml(new { message = "Recording deleted successfully.", result }), "application/xml");
         }
+        #endregion
 
-        public async Task<ActionResult> UpdateRecordings(string recordID)
+        #region Update Recording Metadata
+        [HttpPut("updateMetadata")]
+        public async Task<IActionResult> UpdateRecordingMetadata(string recordID)
         {
             var request = new UpdateRecordingsRequest
             {
                 recordID = recordID,
                 meta = new MetaData { { "customdata", DateTime.Now.Ticks.ToString() } }
             };
+
             var result = await client.UpdateRecordingsAsync(request);
 
-            if (result.returncode == Returncode.FAILED) return View("Error", result);
-            return RedirectToAction("Recordings");
-        }
-
-        public async Task<ActionResult> Tracks(string recordID)
-        {
-            var result = await client.GetRecordingTextTracksAsync(new GetRecordingTextTracksRequest { recordID = recordID });
-            return Json(result);
-        }
-
-        public async Task<ActionResult> PutTrack(string recordID)
-        {
-            var request = new PutRecordingTextTrackRequest
+            if (result.returncode == Returncode.FAILED)
             {
-                recordID = recordID,
-                kind = "subtitles",
-                label = "English",
-                lang = "en"
-            };
+                return Content(XmlHelper.XmlErrorResponse("Failed to update metadata.", result.message), "application/xml");
+            }
 
-            var webVTT = "WEBVTT - Some title\n\n00:00.000 --> 00:04.000\nHello\n\n00:04.000 --> 00:08.000\nWorld\n\n\n";
-            var fileData = Encoding.UTF8.GetBytes(webVTT);
-
-            request.file = new FileContentData
-            {
-                Name = "file",
-                FileName = "a.vtt",
-                FileData = fileData
-            };
-            var result = await client.PutRecordingTextTrackAsync(request);
-            return Json(result);
+            return Content(XmlHelper.ToXml(new { message = "Recording metadata updated successfully.", result }), "application/xml");
         }
+        #endregion
 
+        #region Get Recording Text Tracks
+        [HttpGet("textTracks")]
+        public async Task<IActionResult> GetRecordingTextTracks(string recordID)
+        {
+            var result = await client.GetRecordingTextTracksAsync(new GetRecordingTextTracksRequest
+            {
+                recordID = recordID
+            });
+
+            if (result == null || result.returncode == Returncode.FAILED)
+            {
+                return Content(XmlHelper.XmlErrorResponse("Failed to retrieve text tracks.", result?.message ?? "Unknown error"), "application/xml");
+            }
+
+            return Content(XmlHelper.ToXml(result), "application/xml");
+        }
+        #endregion
+
+        #region Pause Recording
+        [HttpPost("pause")]
+        public async Task<IActionResult> PauseRecording(string meetingID, string moderatorPW)
+        {
+            try
+            {
+                var result = await client.PauseRecordingAsync(new PauseRecordingRequest
+                {
+                    meetingID = meetingID,
+                    moderatorPW = moderatorPW
+                });
+
+                if (result.returncode == Returncode.FAILED)
+                {
+                    return Content(XmlHelper.XmlErrorResponse("Failed to pause recording.", result.message), "application/xml");
+                }
+
+                return Content(XmlHelper.ToXml(new { message = "Recording paused successfully.", result }), "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.ToXml(new
+                {
+                    message = "An error occurred while pausing the recording.",
+                    details = ex.Message
+                }));
+            }
+        }
+        #endregion
+
+        #region Resume Recording
+        [HttpPost("resume")]
+        public async Task<IActionResult> ResumeRecording(string meetingID, string moderatorPW)
+        {
+            try
+            {
+                var result = await client.ResumeRecordingAsync(new ResumeRecordingRequest
+                {
+                    meetingID = meetingID,
+                    moderatorPW = moderatorPW
+                });
+
+                if (result.returncode == Returncode.FAILED)
+                {
+                    return Content(XmlHelper.XmlErrorResponse("Failed to resume recording.", result.message), "application/xml");
+                }
+
+                return Content(XmlHelper.ToXml(new { message = "Recording resumed successfully.", result }), "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.ToXml(new
+                {
+                    message = "An error occurred while resuming the recording.",
+                    details = ex.Message
+                }));
+            }
+        }
+        #endregion
     }
 }

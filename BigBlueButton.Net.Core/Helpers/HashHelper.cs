@@ -27,5 +27,32 @@ namespace BigBlueButton.Net.Core.Helpers
             return EnText.ToString(); // Hash değerini string olarak döndürür.
         }
 
+
+
+
+
+
+
+
+
+
+        // HMACSHA256 ile İmza Hesaplama (Webhook İçin)
+        public static string ComputeHMACSHA256(object data, string secret)
+        {
+            var jsonData = System.Text.Json.JsonSerializer.Serialize(data);
+            var encoding = new UTF8Encoding();
+            byte[] keyByte = encoding.GetBytes(secret);
+            byte[] messageBytes = encoding.GetBytes(jsonData);
+
+            using (var hmacsha256 = new HMACSHA256(keyByte))
+            {
+                byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
+                return BitConverter.ToString(hashmessage).Replace("-", "").ToLower();
+            }
+        }
+
+
+
+
     }
 }

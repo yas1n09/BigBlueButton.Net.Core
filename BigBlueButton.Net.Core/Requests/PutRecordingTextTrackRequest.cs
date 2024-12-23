@@ -20,6 +20,7 @@ namespace BigBlueButton.Net.Core.Requests
 
         // Metin izinin okunabilir bir etiketi. Belirtilmezse, sistem lang parametresinde belirtilen dilin adını içeren bir etiket otomatik olarak oluşturur.
         public string label { get; set; }
+        public string content { get; set; } //webVTT KISMI CONTENT YAPTIM
     }
 
 }
