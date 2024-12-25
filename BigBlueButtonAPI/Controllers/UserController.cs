@@ -1,4 +1,5 @@
 ﻿using BigBlueButton.Net.Core.BigBlueButtonAPIClient;
+using BigBlueButton.Net.Core.DTOs.UserDto;
 using BigBlueButton.Net.Core.Enums;
 using BigBlueButton.Net.Core.Helpers;
 using BigBlueButton.Net.Core.Requests;
@@ -21,68 +22,139 @@ namespace BigBlueButtonAPI.Controllers
         [HttpPost("add")]
         public IActionResult AddUserToMeeting(string meetingID, string fullName, string password, string role)
         {
-            var joinRequest = new JoinMeetingRequest
+            try
             {
-                meetingID = meetingID,
-                fullName = fullName,
-                password = password
-            };
+                var joinRequest = new JoinMeetingRequest
+                {
+                    meetingID = meetingID,
+                    fullName = fullName,
+                    password = password
+                };
 
-            if (role.ToLower() == "moderator" || role.ToLower() == "attendee")
-            {
-                joinRequest.password = password;
-            }
-            else
-            {
-                return Content(XmlHelper.XmlErrorResponse("Invalid role.", "Role must be 'moderator' or 'attendee'."), "application/xml");
-            }
+                if (role.ToLower() != "moderator" && role.ToLower() != "attendee")
+                {
+                    return Content(XmlHelper.XmlErrorResponse<UserErrorResponseDto>(
+                        "Invalid role.",
+                        "Role must be 'moderator' or 'attendee'."), "application/xml");
+                }
 
-            var url = client.GetJoinMeetingUrl(joinRequest);
-            return Redirect(url);
+                var url = client.GetJoinMeetingUrl(joinRequest);
+
+                var response = new AddUserDto
+                {
+                    MeetingID = meetingID,
+                    FullName = fullName,
+                    Role = role,
+                    JoinUrl = url,
+                    Message = "User added successfully."
+                };
+
+                return Content(XmlHelper.ToXml(response), "application/xml");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.XmlErrorResponse<UserErrorResponseDto>(
+                    "An error occurred while adding the user.",
+                    ex.Message));
+            }
         }
         #endregion
+
+
+
+
+
+
 
         #region Remove User from Meeting
         [HttpPost("remove")]
         public async Task<IActionResult> RemoveUserFromMeeting(string meetingID, string userID)
         {
-            var result = await client.EjectParticipantAsync(new EjectParticipantRequest
+            try
             {
-                meetingID = meetingID,
-                userID = userID
-            });
+                var result = await client.EjectParticipantAsync(new EjectParticipantRequest
+                {
+                    meetingID = meetingID,
+                    userID = userID
+                });
 
-            if (result.returncode == Returncode.FAILED.ToString())
-            {
-                return Content(XmlHelper.XmlErrorResponse("Failed to remove user from meeting.", result.message), "application/xml");
+                if (result.returncode == Returncode.FAILED.ToString())
+                {
+                    return Content(XmlHelper.XmlErrorResponse<UserErrorResponseDto>(
+                        "Failed to remove user from meeting.",
+                        result.message), "application/xml");
+                }
+
+                var response = new RemoveUserDto
+                {
+                    MeetingID = meetingID,
+                    UserID = userID,
+                    IsRemoved = true,
+                    Message = "User removed successfully."
+                };
+
+                return Content(XmlHelper.ToXml(response), "application/xml");
             }
-
-            var successResponse = new
+            catch (Exception ex)
             {
-                message = "User removed successfully."
-            };
-
-            return Content(XmlHelper.ToXml(successResponse), "application/xml");
+                return StatusCode(500, XmlHelper.XmlErrorResponse<UserErrorResponseDto>(
+                    "An error occurred while removing the user.",
+                    ex.Message));
+            }
         }
         #endregion
+
+
+
+
+
+
 
         #region Get User List
         [HttpGet("list")]
         public async Task<IActionResult> GetUserList(string meetingID, string password)
         {
-            var result = await client.GetMeetingInfoAsync(new GetMeetingInfoRequest
+            try
             {
-                meetingID = meetingID,
-                password = password
-            });
+                var result = await client.GetMeetingInfoAsync(new GetMeetingInfoRequest
+                {
+                    meetingID = meetingID,
+                    password = password
+                });
 
-            if (result.returncode == Returncode.FAILED)
-            {
-                return Content(XmlHelper.XmlErrorResponse("Failed to retrieve user list.", result.message), "application/xml");
+                if (result.returncode == Returncode.FAILED)
+                {
+                    return Content(XmlHelper.XmlErrorResponse<UserErrorResponseDto>(
+                        "Failed to retrieve user list.",
+                        result.message), "application/xml");
+                }
+
+                // Attendees doğrudan List<Attendee> tipinde geliyor
+                var attendees = result.attendees
+                    .Select(a => new UserDto
+                    {
+                        UserID = a.userID,
+                        FullName = a.fullName,
+                        Role = a.role
+                    }).ToList();
+
+                var response = new UserListDto
+                {
+                    MeetingID = meetingID,
+                    Attendees = attendees,
+                    Message = "User list retrieved successfully."
+                };
+
+                return Content(XmlHelper.ToXml(response), "application/xml");
             }
-
-            return Content(XmlHelper.ToXml(result.attendees), "application/xml");
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.XmlErrorResponse<UserErrorResponseDto>(
+                    "An error occurred while retrieving the user list.",
+                    ex.Message));
+            }
         }
         #endregion
+
     }
 }

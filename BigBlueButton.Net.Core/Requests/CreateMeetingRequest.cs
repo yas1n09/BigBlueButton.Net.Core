@@ -21,6 +21,7 @@ namespace BigBlueButton.Net.Core.Requests
         public string logoutURL { get; set; }  // Çıkış URL'si (isteğe bağlı)
         public bool? record { get; set; }  // Kaydı başlatma (isteğe bağlı)
         public int? duration { get; set; }  // Toplantı süresi (isteğe bağlı)
+        public bool? allowOverrideClientSettingsOnCreateCall { get; set; }  // İstemci ayarlarını geçersiz kılma izni (yeni)
         public bool? isBreakout { get; set; }  // Breakout odası (gereklidir)
         public string parentMeetingID { get; set; }  // Ana toplantı ID'si (gereklidir)
         public int? sequence { get; set; }  // Breakout odası sırası (gereklidir)

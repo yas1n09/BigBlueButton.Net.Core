@@ -18,11 +18,7 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
         private readonly HttpClient httpClient;
         private readonly UrlBuilder urlBuilder;
 
-        /// <summary>
-        /// The constructor of the class.
-        /// </summary>
-        /// <param name="settings">The BigBlueButtonAPI.Core.BigBlueButtonAPISettings class contains the config data for the BigBlueButton API</param>
-        /// <param name="httpClient">The HttpClient instance</param>
+     
         public BigBlueButtonAPIClient(BigBlueButtonAPISettings settings, HttpClient httpClient)
         {
             this.urlBuilder = new UrlBuilder(settings);
@@ -35,26 +31,7 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
             var result = await HttpGetAsync<T>(url);
             return result;
         }
-        // Existing code...
-
-        //private async Task<T> HttpGetAsync<T>(string url)
-        //{
-        //    var response = await httpClient.GetAsync(url);
-        //    var xmlOrJson = await response.Content.ReadAsStringAsync();
-        //    if (typeof(T) == typeof(string)) return (T)(object)xmlOrJson;
-
-        //    // Most APIs return XML string.
-        //    // The getRecordingTextTracks API may return JSON string.
-        //    if (xmlOrJson.StartsWith("<"))
-        //    {
-        //        return XmlHelper.FromXml<T>(xmlOrJson);
-        //    }
-        //    else
-        //    {
-        //        var wrapper = JsonConvert.DeserializeObject<ResponseJsonWrapper<T>>(xmlOrJson);
-        //        return wrapper.response;
-        //    }
-        //}
+        
 
         private async Task<T> HttpGetAsync<T>(string url)
         {
@@ -141,13 +118,7 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
         #endregion
 
         #region create
-        /// <summary>
-        /// Creates a new meeting.
-        /// The create call is idempotent: you can call it multiple times with the same parameters without side effects. This simplifies the logic for joining a user into a session as your application can always call create before returning the join URL to the user. This way, regardless of the order in which users join, the meeting will always exist when the user tries to join (the first create call actually creates the meeting; subsequent calls to create simply return SUCCESS).
-        /// The BigBlueButton server will automatically remove empty meetings that were created but have never had any users after a number of minutes specified by meetingExpireIfNoUserJoinedInMinutes defined in bigbluebutton.properties.
-        /// </summary>
-        /// <param name="request">The request data</param>
-        /// <returns></returns>
+        
         public async Task<CreateMeetingResponse> CreateMeetingAsync(CreateMeetingRequest request)
         {
             //if (request == null) throw new ArgumentNullException("request");

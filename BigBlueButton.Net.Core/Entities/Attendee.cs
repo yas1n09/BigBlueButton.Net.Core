@@ -20,5 +20,7 @@ namespace BigBlueButton.Net.Core.Entities
         public bool hasVideo { get; set; } // Kullanıcı video kullanıyor mu?
         public string clientType { get; set; } // Kullanıcının bağlandığı istemci türü.
 
+        
+
     }
 }

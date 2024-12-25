@@ -46,6 +46,9 @@ namespace BigBlueButton.Net.Core.Responses
 
         // Toplantının zorla sonlandırılıp sonlandırılmadığı.
         public bool? hasBeenForciblyEnded { get; set; }
+
+        
+
     }
 
 }

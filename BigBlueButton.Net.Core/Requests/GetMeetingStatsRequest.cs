@@ -11,5 +11,7 @@ namespace BigBlueButton.Net.Core.Requests
     {
         // İstatistiklerin alınacağı toplantının ID'si
         public string meetingID { get; set; }
+
+
     }
 }

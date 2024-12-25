@@ -1,4 +1,5 @@
 ﻿using BigBlueButton.Net.Core.BigBlueButtonAPIClient;
+using BigBlueButton.Net.Core.DTOs.ReportingDto;
 using BigBlueButton.Net.Core.Helpers;
 using BigBlueButton.Net.Core.Requests;
 using Microsoft.AspNetCore.Mvc;
@@ -20,37 +21,90 @@ namespace BigBlueButtonAPI.Controllers
         [HttpGet("stats")]
         public async Task<IActionResult> GetMeetingStats(string meetingID)
         {
-            var result = await client.GetMeetingStatsAsync(new GetMeetingStatsRequest
+            try
             {
-                meetingID = meetingID
-            });
+                var request = new GetMeetingStatsRequest
+                {
+                    meetingID = meetingID
+                };
 
-            if (result.returncode == "FAILED")
-            {
-                return Content(XmlHelper.XmlErrorResponse("Failed to retrieve meeting stats.", result.message), "application/xml");
+                var result = await client.GetMeetingStatsAsync(request);
+
+                if (result.returncode == "FAILED")
+                {
+                    return Content(XmlHelper.XmlErrorResponse<ReportingErrorResponseDto>(
+                        "Failed to retrieve meeting stats.",
+                        result.message), "application/xml");
+                }
+
+                var meetingStatsDto = new MeetingStatsDto
+                {
+                    MeetingID = meetingID,  // Request üzerinden meetingID atanıyor
+                    ParticipantCount = result.participantCount,
+                    ListenerCount = result.listenerCount,
+                    VoiceParticipantCount = result.voiceParticipantCount,
+                    VideoCount = result.videoCount,
+                    ModeratorCount = result.moderatorCount,
+                    StartTime = result.startTime,
+                    EndTime = result.endTime,
+                    IsRunning = result.running,
+                    Message = "Meeting stats retrieved successfully."
+                };
+
+                return Content(XmlHelper.ToXml(meetingStatsDto), "application/xml");
             }
-
-            var xmlResult = XmlHelper.ToXml(result);
-            return Content(xmlResult, "application/xml");
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.XmlErrorResponse<ReportingErrorResponseDto>(
+                    "An error occurred while retrieving meeting stats.",
+                    ex.Message));
+            }
         }
         #endregion
+
+
+
+
 
         #region Export Meeting Data
         [HttpGet("export")]
         public async Task<IActionResult> ExportMeetingData(string meetingID)
         {
-            var result = await client.ExportMeetingDataAsync(new ExportMeetingDataRequest
+            try
             {
-                meetingID = meetingID
-            });
+                var result = await client.ExportMeetingDataAsync(new ExportMeetingDataRequest
+                {
+                    meetingID = meetingID
+                });
 
-            if (result.returncode == "FAILED")
-            {
-                return Content(XmlHelper.XmlErrorResponse("Failed to export meeting data.", result.message), "application/xml");
+                if (result.returncode == "FAILED")
+                {
+                    return Content(XmlHelper.XmlErrorResponse<ReportingErrorResponseDto>(
+                        "Failed to export meeting data.",
+                        result.message), "application/xml");
+                }
+
+                // DTO oluştur ve döndür
+                var exportDto = new ExportMeetingDataDto
+                {
+                    MeetingID = meetingID,
+                    Data = result.Data,
+                    FileName = "MeetingData.json",
+                    Message = "Meeting data exported successfully."
+                };
+
+                // JSON dosya olarak döndürülür
+                return File(exportDto.Data, "application/json", exportDto.FileName);
             }
-
-            return File(result.Data, "application/json", "MeetingData.json");
+            catch (Exception ex)
+            {
+                return StatusCode(500, XmlHelper.XmlErrorResponse<ReportingErrorResponseDto>(
+                    "An error occurred while exporting meeting data.",
+                    ex.Message));
+            }
         }
         #endregion
+
+
     }
 }
