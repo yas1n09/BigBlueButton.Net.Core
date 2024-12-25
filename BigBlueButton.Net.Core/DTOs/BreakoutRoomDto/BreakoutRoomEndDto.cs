@@ -12,5 +12,6 @@ namespace BigBlueButton.Net.Core.DTOs.BreakoutRoomDto
     {
         public string MeetingID { get; set; }
         public string Message { get; set; }
+        public DateTime EndTime { get; set; }
     }
 }

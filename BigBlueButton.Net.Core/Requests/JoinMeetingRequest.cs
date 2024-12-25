@@ -9,6 +9,8 @@ namespace BigBlueButton.Net.Core.Requests
 {
     public class JoinMeetingRequest : BaseRequest
     {
+        public string userdata;
+
         // Gereklidir.
         // Bu kullanıcıyı diğer katılımcılara tanıtacak tam ad.
         public string fullName { get; set; }

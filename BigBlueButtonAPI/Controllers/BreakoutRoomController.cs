@@ -27,10 +27,13 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Create Breakout Room
         [HttpPost("create")]
-        public async Task<IActionResult> CreateBreakoutRoom(CreateBreakoutRoomRequest request)
+        public async Task<IActionResult> CreateBreakoutRoom(CreateBreakoutRoomRequest request, bool redirect = true, string userdata = "")
         {
             try
             {
+                request.redirect = redirect;
+                request.userdata = userdata;
+
                 var result = await client.CreateMeetingAsync(request);
 
                 if (result.returncode == Returncode.FAILED)
@@ -46,7 +49,9 @@ namespace BigBlueButtonAPI.Controllers
                     Name = request.name,
                     AttendeePW = request.attendeePW,
                     ModeratorPW = request.moderatorPW,
-                    Duration = (int)request.duration
+                    Duration = (int)request.duration,
+                    Redirect = redirect,
+                    Message = "Breakout room created successfully."
                 }), "application/xml");
             }
             catch (Exception ex)
@@ -56,6 +61,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -80,7 +86,8 @@ namespace BigBlueButtonAPI.Controllers
                 return Content(XmlHelper.ToXml(new BreakoutRoomEndDto
                 {
                     MeetingID = request.meetingID,
-                    Message = "Breakout room ended successfully."
+                    Message = "Breakout room ended successfully.",
+                    EndTime = DateTime.UtcNow  // Toplantı sonlanma zamanı ekleniyor
                 }), "application/xml");
             }
             catch (Exception ex)
@@ -90,6 +97,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -120,7 +128,15 @@ namespace BigBlueButtonAPI.Controllers
                     MeetingID = result.meetingID,
                     Name = result.meetingName,
                     ParticipantCount = result.participantCount ?? 0,
-                    IsRunning = result.running ?? false
+                    IsRunning = result.running ?? false,
+                    StartTime = result.startTime,
+                    EndTime = result.endTime,
+                    MaxUsers = result.maxUsers ?? 0,
+                    ModeratorCount = result.moderatorCount ?? 0,
+                    VoiceParticipantCount = result.voiceParticipantCount ?? 0,
+                    VideoCount = result.videoCount ?? 0,
+                    ListenerCount = result.listenerCount ?? 0,
+                    BreakoutRooms = result.breakoutRooms
                 }), "application/xml");
             }
             catch (Exception ex)
@@ -130,6 +146,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -144,6 +161,13 @@ namespace BigBlueButtonAPI.Controllers
             {
                 var meetings = await client.GetMeetingsAsync();
 
+                if (meetings == null || meetings.returncode == Returncode.FAILED)
+                {
+                    return Content(XmlHelper.XmlErrorResponse<BreakoutRoomErrorResponseDto>(
+                        "No breakout rooms found.",
+                        "Meetings list is empty or an error occurred."), "application/xml");
+                }
+
                 var breakoutRooms = new List<BreakoutRoomInfoDto>();
 
                 foreach (var meeting in meetings.meetings)
@@ -153,7 +177,15 @@ namespace BigBlueButtonAPI.Controllers
                         MeetingID = meeting.meetingID,
                         Name = meeting.meetingName,
                         ParticipantCount = meeting.participantCount ?? 0,
-                        IsRunning = meeting.running ?? false
+                        IsRunning = meeting.running ?? false,
+                        StartTime = meeting.startTime,
+                        EndTime = meeting.endTime,
+                        MaxUsers = meeting.maxUsers ?? 0,
+                        ModeratorCount = meeting.moderatorCount ?? 0,
+                        VoiceParticipantCount = meeting.voiceParticipantCount ?? 0,
+                        VideoCount = meeting.videoCount ?? 0,
+                        ListenerCount = meeting.listenerCount ?? 0,
+                        BreakoutRooms = meeting.breakoutRooms
                     });
                 }
 
@@ -170,6 +202,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -178,15 +211,19 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Join Breakout Room
         [HttpPost("join")]
-        public IActionResult JoinBreakoutRoom(JoinBreakoutRoomRequest request)
+        public IActionResult JoinBreakoutRoom(JoinBreakoutRoomRequest request, bool redirect = true, string userdata = "")
         {
             try
             {
+                request.redirect = redirect;
+                request.userdata = userdata;
+
                 var joinUrl = client.GetJoinMeetingUrl(request);
 
                 return Content(XmlHelper.ToXml(new BreakoutRoomJoinDto
                 {
                     JoinUrl = joinUrl,
+                    Redirect = redirect,
                     Message = "Successfully retrieved breakout room join URL."
                 }), "application/xml");
             }
@@ -197,6 +234,8 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
+
         #endregion
 
 

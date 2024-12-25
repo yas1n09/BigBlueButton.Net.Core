@@ -35,6 +35,6 @@ namespace BigBlueButton.Net.Core.DTOs.MeetingDto
         public string ParentMeetingID { get; set; }
         public int? Sequence { get; set; }
         public bool? FreeJoin { get; set; }
-        
+        public string Message { get; set; }
     }
 }

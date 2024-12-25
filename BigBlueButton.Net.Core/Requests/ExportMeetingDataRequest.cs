@@ -10,5 +10,6 @@ namespace BigBlueButton.Net.Core.Requests
     public class ExportMeetingDataRequest : BaseRequest
     {
         public string meetingID { get; set; }
+        public string format { get; set; }
     }
 }

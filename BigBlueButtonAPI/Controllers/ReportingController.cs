@@ -39,12 +39,14 @@ namespace BigBlueButtonAPI.Controllers
 
                 var meetingStatsDto = new MeetingStatsDto
                 {
-                    MeetingID = meetingID,  // Request üzerinden meetingID atanıyor
+                    MeetingID = meetingID,
                     ParticipantCount = result.participantCount,
                     ListenerCount = result.listenerCount,
                     VoiceParticipantCount = result.voiceParticipantCount,
                     VideoCount = result.videoCount,
                     ModeratorCount = result.moderatorCount,
+                    RecordingCount = result.recordingCount ?? 0,  // Yeni Alan
+                    BreakoutCount = result.breakoutCount ?? 0,    // Yeni Alan
                     StartTime = result.startTime,
                     EndTime = result.endTime,
                     IsRunning = result.running,
@@ -60,6 +62,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -68,13 +71,14 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Export Meeting Data
         [HttpGet("export")]
-        public async Task<IActionResult> ExportMeetingData(string meetingID)
+        public async Task<IActionResult> ExportMeetingData(string meetingID, string format = "json")
         {
             try
             {
                 var result = await client.ExportMeetingDataAsync(new ExportMeetingDataRequest
                 {
-                    meetingID = meetingID
+                    meetingID = meetingID,
+                    format = format
                 });
 
                 if (result.returncode == "FAILED")
@@ -84,17 +88,16 @@ namespace BigBlueButtonAPI.Controllers
                         result.message), "application/xml");
                 }
 
-                // DTO oluştur ve döndür
                 var exportDto = new ExportMeetingDataDto
                 {
                     MeetingID = meetingID,
                     Data = result.Data,
-                    FileName = "MeetingData.json",
+                    FileName = $"MeetingData.{format}",
                     Message = "Meeting data exported successfully."
                 };
 
-                // JSON dosya olarak döndürülür
-                return File(exportDto.Data, "application/json", exportDto.FileName);
+                var contentType = format == "xml" ? "application/xml" : "application/json";
+                return File(exportDto.Data, contentType, exportDto.FileName);
             }
             catch (Exception ex)
             {
@@ -103,6 +106,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 

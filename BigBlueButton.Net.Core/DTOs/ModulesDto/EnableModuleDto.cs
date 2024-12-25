@@ -12,5 +12,6 @@ namespace BigBlueButton.Net.Core.DTOs.ModulesDto
         public string ModuleName { get; set; }
         public bool IsEnabled { get; set; }
         public string Message { get; set; }
+        public bool Redirect { get; set; }
     }
 }

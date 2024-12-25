@@ -14,5 +14,6 @@ namespace BigBlueButton.Net.Core.DTOs.UserDto
         public string Role { get; set; }
         public string JoinUrl { get; set; }
         public string Message { get; set; }
+        public bool Redirect { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Add User to Meeting
         [HttpPost("add")]
-        public IActionResult AddUserToMeeting(string meetingID, string fullName, string password, string role)
+        public IActionResult AddUserToMeeting(string meetingID, string fullName, string password, string role, bool redirect = true, string userdata = "")
         {
             try
             {
@@ -28,7 +28,9 @@ namespace BigBlueButtonAPI.Controllers
                 {
                     meetingID = meetingID,
                     fullName = fullName,
-                    password = password
+                    password = password,
+                    redirect = redirect,
+                    userdata = userdata
                 };
 
                 if (role.ToLower() != "moderator" && role.ToLower() != "attendee")
@@ -46,6 +48,7 @@ namespace BigBlueButtonAPI.Controllers
                     FullName = fullName,
                     Role = role,
                     JoinUrl = url,
+                    Redirect = redirect,
                     Message = "User added successfully."
                 };
 
@@ -58,6 +61,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -112,7 +116,8 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Get User List
         [HttpGet("list")]
-        public async Task<IActionResult> GetUserList(string meetingID, string password)
+        
+        public async Task<IActionResult> GetUserList(string meetingID, string password, string role = "")
         {
             try
             {
@@ -129,8 +134,8 @@ namespace BigBlueButtonAPI.Controllers
                         result.message), "application/xml");
                 }
 
-                // Attendees doğrudan List<Attendee> tipinde geliyor
                 var attendees = result.attendees
+                    .Where(a => string.IsNullOrEmpty(role) || a.role.Equals(role, StringComparison.OrdinalIgnoreCase))
                     .Select(a => new UserDto
                     {
                         UserID = a.userID,
@@ -154,6 +159,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
     }

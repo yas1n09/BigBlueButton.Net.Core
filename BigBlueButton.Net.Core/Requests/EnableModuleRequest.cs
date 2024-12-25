@@ -11,5 +11,6 @@ namespace BigBlueButton.Net.Core.Requests
     {
         public string meetingID { get; set; }
         public string moduleName { get; set; }
+        public bool redirect { get; set; }
     }
 }

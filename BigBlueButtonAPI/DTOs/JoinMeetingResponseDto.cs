@@ -4,5 +4,7 @@
     {
         public JoinMeetingResponseDto() { }
         public string JoinUrl { get; set; }
+        public bool Redirect { get; set; }
+        public string Message { get; set; }
     }
 }

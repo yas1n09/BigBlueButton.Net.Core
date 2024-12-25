@@ -10,6 +10,7 @@ namespace BigBlueButton.Net.Core.Requests
     public class GetMeetingsRequest : BaseRequest
     {
         // Bu sınıf, toplantıları sorgulamak için kullanılan temel istek sınıfıdır.
+        public bool includeMetadata { get; set; } = false;  // Varsayılan olarak kapalı
     }
 
 }

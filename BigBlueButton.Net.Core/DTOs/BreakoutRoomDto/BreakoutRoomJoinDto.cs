@@ -12,5 +12,6 @@ namespace BigBlueButton.Net.Core.DTOs.BreakoutRoomDto
     {
         public string JoinUrl { get; set; }
         public string Message { get; set; }
+        public bool Redirect { get; set; }
     }
 }

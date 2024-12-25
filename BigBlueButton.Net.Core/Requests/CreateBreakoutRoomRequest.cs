@@ -11,5 +11,7 @@ namespace BigBlueButton.Net.Core.Requests
     {
         public string parentMeetingID { get; set; }  // Breakout Room’a özel alan
         public int? sequence { get; set; }
+        public bool redirect { get; set; }
+        public string userdata { get; set; }
     }
 }

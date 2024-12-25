@@ -15,5 +15,7 @@ namespace BigBlueButton.Net.Core.DTOs.BreakoutRoomDto
         public string AttendeePW { get; set; }
         public string ModeratorPW { get; set; }
         public int Duration { get; set; }
+        public bool Redirect { get; set; }
+        public string Message { get; set; }
     }
 }

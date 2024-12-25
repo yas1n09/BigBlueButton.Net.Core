@@ -23,10 +23,10 @@ namespace BigBlueButtonAPI.Controllers
 
 
 
-
         #region Create Meeting
+
         [HttpPost("create")]
-        public async Task<IActionResult> CreateMeeting(string name, string meetingID, bool record = false)
+        public async Task<IActionResult> CreateMeeting(string name, string meetingID, bool record = false, bool muteOnStart = false, bool webcamsOnlyForModerator = false)
         {
             try
             {
@@ -34,7 +34,9 @@ namespace BigBlueButtonAPI.Controllers
                 {
                     name = name,
                     meetingID = meetingID,
-                    record = record
+                    record = record,
+                    muteOnStart = muteOnStart,
+                    webcamsOnlyForModerator = webcamsOnlyForModerator
                 });
 
                 if (result.returncode == Returncode.FAILED)
@@ -72,14 +74,12 @@ namespace BigBlueButtonAPI.Controllers
                 }));
             }
         }
+
         #endregion
 
 
-
-
-
-
         #region End Meeting
+
         [HttpPost("end")]
         public async Task<IActionResult> EndMeeting(string meetingID, string password)
         {
@@ -115,16 +115,15 @@ namespace BigBlueButtonAPI.Controllers
                 }));
             }
         }
+
+
         #endregion
 
 
-
-
-
-
         #region Join Meeting
+
         [HttpGet("join")]
-        public async Task<IActionResult> JoinMeeting(string meetingID, string fullName, string password)
+        public async Task<IActionResult> JoinMeeting(string meetingID, string fullName, string password, bool redirect = true, string userdata = "")
         {
             try
             {
@@ -132,33 +131,36 @@ namespace BigBlueButtonAPI.Controllers
                 {
                     meetingID = meetingID,
                     fullName = fullName,
-                    password = password
+                    password = password,
+                    redirect = redirect,
+                    userdata = userdata
                 };
 
                 var joinUrl = client.GetJoinMeetingUrl(joinRequest);
 
                 return Content(XmlHelper.ToXml(new JoinMeetingResponseDto
                 {
-                    JoinUrl = joinUrl
+                    JoinUrl = joinUrl,
+                    Redirect = redirect,
+                    Message = "Join URL generated successfully."
                 }), "application/xml");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, XmlHelper.ToXml(new MeetingErrorResponseDto
                 {
-                    Message = "An error occurred while joining the meeting.",
+                    Message = "An error occurred while generating join URL.",
                     Details = ex.Message
                 }));
             }
         }
+
+
         #endregion
 
 
-
-
-
-
         #region Is Meeting Running
+
         [HttpGet("isRunning")]
         public async Task<IActionResult> IsMeetingRunning(string meetingID)
         {
@@ -194,14 +196,14 @@ namespace BigBlueButtonAPI.Controllers
                 }));
             }
         }
+
+
         #endregion
 
 
-
-
-
-
         #region Get Meeting Info
+
+        
         [HttpGet("info")]
         public async Task<IActionResult> GetMeetingInfo(string meetingID, string password)
         {
@@ -232,7 +234,19 @@ namespace BigBlueButtonAPI.Controllers
                     VoiceBridge = result.voiceBridge,
                     DialNumber = result.dialNumber,
                     AttendeePW = result.attendeePW,
-                    ModeratorPW = result.moderatorPW
+                    ModeratorPW = result.moderatorPW,
+                    Duration = result.duration,
+                    ParticipantCount = result.participantCount,
+                    ListenerCount = result.listenerCount,
+                    VoiceParticipantCount = result.voiceParticipantCount,
+                    VideoCount = result.videoCount,
+                    MaxUsers = result.maxUsers,
+                    ModeratorCount = result.moderatorCount,
+                    IsBreakout = result.isBreakout,
+                    BreakoutRooms = result.breakoutRooms,
+                    StartTime = result.startTime,
+                    EndTime = result.endTime,
+                    Message = "Meeting info retrieved successfully."
                 }), "application/xml");
             }
             catch (Exception ex)
@@ -244,13 +258,13 @@ namespace BigBlueButtonAPI.Controllers
                 }));
             }
         }
+
+
         #endregion
 
 
-
-
-
         #region Get All Meetings
+
         [HttpGet("all")]
         public async Task<IActionResult> GetAllMeetings()
         {
@@ -263,14 +277,30 @@ namespace BigBlueButtonAPI.Controllers
                     return Content(XmlHelper.ToXml(new MeetingErrorResponseDto
                     {
                         Message = "No meetings found.",
-                        Details = "Meetings list is empty."
+                        Details = "Meetings list is empty or an error occurred."
                     }), "application/xml");
                 }
 
                 var response = new AllMeetingsDto
                 {
                     Message = "Meetings retrieved successfully.",
-                    Meetings = meetings
+                    Meetings = meetings.meetings.Select(m => new MeetingInfoDto
+                    {
+                        MeetingID = m.meetingID,
+                        MeetingName = m.meetingName,
+                        CreateTime = m.createTime,
+                        CreateDate = m.createDate,
+                        ParticipantCount = m.participantCount,
+                        ListenerCount = m.listenerCount,
+                        VoiceParticipantCount = m.voiceParticipantCount,
+                        VideoCount = m.videoCount,
+                        ModeratorCount = m.moderatorCount,
+                        IsBreakout = m.isBreakout,
+                        BreakoutRooms = m.breakoutRooms,
+                        Duration = m.duration,
+                        StartTime = m.startTime,
+                        EndTime = m.endTime
+                    }).ToList()
                 };
 
                 return Content(XmlHelper.ToXml(response), "application/xml");
@@ -284,6 +314,8 @@ namespace BigBlueButtonAPI.Controllers
                 }));
             }
         }
+
+
         #endregion
 
 
@@ -315,12 +347,7 @@ namespace BigBlueButtonAPI.Controllers
 
 
 
-
-
-
-
-
-        //#region Create Meeting
+        #region Create Meeting
         //[HttpPost("create")]
         //public async Task<IActionResult> CreateMeeting(string name, string meetingID, bool record = false)
         //{
@@ -368,11 +395,14 @@ namespace BigBlueButtonAPI.Controllers
         //        }));
         //    }
         //}
-        //#endregion
+        #endregion
 
 
 
-        //#region End Meeting
+
+
+
+        #region End Meeting
         //[HttpPost("end")]
         //public async Task<IActionResult> EndMeeting(string meetingID, string password)
         //{
@@ -408,11 +438,14 @@ namespace BigBlueButtonAPI.Controllers
         //        }));
         //    }
         //}
-        //#endregion
+        #endregion
 
 
 
-        //#region Join Meeting
+
+
+
+        #region Join Meeting
         //[HttpGet("join")]
         //public async Task<IActionResult> JoinMeeting(string meetingID, string fullName, string password)
         //{
@@ -441,11 +474,14 @@ namespace BigBlueButtonAPI.Controllers
         //        }));
         //    }
         //}
-        //#endregion
+        #endregion
 
 
 
-        //#region Is Meeting Running
+
+
+
+        #region Is Meeting Running
         //[HttpGet("isRunning")]
         //public async Task<IActionResult> IsMeetingRunning(string meetingID)
         //{
@@ -481,12 +517,14 @@ namespace BigBlueButtonAPI.Controllers
         //        }));
         //    }
         //}
-        //#endregion
+        #endregion
 
 
 
 
-        //#region Get Meeting Info
+
+
+        #region Get Meeting Info
         //[HttpGet("info")]
         //public async Task<IActionResult> GetMeetingInfo(string meetingID, string password)
         //{
@@ -507,7 +545,7 @@ namespace BigBlueButtonAPI.Controllers
         //            }), "application/xml");
         //        }
 
-        //        var meetingInfo = new MeetingInfoDto
+        //        return Content(XmlHelper.ToXml(new MeetingInfoDto
         //        {
         //            MeetingID = result.meetingID,
         //            MeetingName = result.meetingName,
@@ -517,28 +555,8 @@ namespace BigBlueButtonAPI.Controllers
         //            VoiceBridge = result.voiceBridge,
         //            DialNumber = result.dialNumber,
         //            AttendeePW = result.attendeePW,
-        //            ModeratorPW = result.moderatorPW,
-        //            Running = result.running,
-        //            Duration = result.duration,
-        //            HasUserJoined = result.hasUserJoined,
-        //            Recording = result.recording,
-        //            HasBeenForciblyEnded = result.hasBeenForciblyEnded,
-        //            StartTime = result.startTime,
-        //            EndTime = result.endTime,
-        //            ParticipantCount = result.participantCount,
-        //            ListenerCount = result.listenerCount,
-        //            VoiceParticipantCount = result.voiceParticipantCount,
-        //            VideoCount = result.videoCount,
-        //            MaxUsers = result.maxUsers,
-        //            ModeratorCount = result.moderatorCount,
-        //            IsBreakout = result.isBreakout,
-        //            BreakoutRooms = result.breakoutRooms,
-        //            ParentMeetingID = result.parentMeetingID,
-        //            Sequence = result.sequence,
-        //            FreeJoin = result.freeJoin
-        //        };
-
-        //        return Content(XmlHelper.ToXml(meetingInfo), "application/xml");
+        //            ModeratorPW = result.moderatorPW
+        //        }), "application/xml");
         //    }
         //    catch (Exception ex)
         //    {
@@ -549,12 +567,13 @@ namespace BigBlueButtonAPI.Controllers
         //        }));
         //    }
         //}
-        //#endregion
+        #endregion
 
 
 
 
-        //#region Get All Meetings
+
+        #region Get All Meetings
         //[HttpGet("all")]
         //public async Task<IActionResult> GetAllMeetings()
         //{
@@ -588,10 +607,7 @@ namespace BigBlueButtonAPI.Controllers
         //        }));
         //    }
         //}
-        //#endregion
-
-
-
+        #endregion
 
 
 

@@ -18,5 +18,7 @@ namespace BigBlueButton.Net.Core.DTOs.ReportingDto
         public long EndTime { get; set; }
         public bool IsRunning { get; set; }
         public string Message { get; set; }
+        public int? RecordingCount { get; set; }
+        public int? BreakoutCount { get; set; }
     }
 }

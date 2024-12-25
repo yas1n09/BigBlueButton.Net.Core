@@ -28,6 +28,7 @@ namespace BigBlueButton.Net.Core.Responses
 
         public int moderatorCount { get; set; }
         public string meetingDuration { get; set; }
-
+        public int? recordingCount { get; set; }
+        public int? breakoutCount { get; set; }
     }
 }

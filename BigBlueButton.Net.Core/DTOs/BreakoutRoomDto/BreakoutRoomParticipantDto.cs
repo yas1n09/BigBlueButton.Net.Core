@@ -14,5 +14,10 @@ namespace BigBlueButton.Net.Core.DTOs.BreakoutRoomDto
         public string ParticipantID { get; set; }
         public string FullName { get; set; }
         public string Role { get; set; }
+        public bool IsModerator { get; set; }
+        public bool IsListeningOnly { get; set; }
+        public bool? HasVideo { get; set; }
+        public bool? HasJoinedVoice { get; set; }
+        public string ClientType { get; set; }
     }
 }

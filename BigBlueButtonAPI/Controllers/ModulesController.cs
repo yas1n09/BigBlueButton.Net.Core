@@ -24,7 +24,7 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Enable Module
         [HttpPost("enable")]
-        public async Task<IActionResult> EnableModule(string meetingID, string moduleName)
+        public async Task<IActionResult> EnableModule(string meetingID, string moduleName, bool redirect = true)
         {
             if (string.IsNullOrEmpty(meetingID) || string.IsNullOrEmpty(moduleName))
             {
@@ -38,7 +38,8 @@ namespace BigBlueButtonAPI.Controllers
                 var result = await client.EnableModuleAsync(new EnableModuleRequest
                 {
                     meetingID = meetingID,
-                    moduleName = moduleName
+                    moduleName = moduleName,
+                    redirect = redirect
                 });
 
                 if (result.returncode == "FAILED")
@@ -53,6 +54,7 @@ namespace BigBlueButtonAPI.Controllers
                     MeetingID = meetingID,
                     ModuleName = moduleName,
                     IsEnabled = true,
+                    Redirect = redirect,
                     Message = "Module enabled successfully."
                 }), "application/xml");
             }
@@ -63,6 +65,7 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
@@ -71,7 +74,7 @@ namespace BigBlueButtonAPI.Controllers
 
         #region Disable Module
         [HttpPost("disable")]
-        public async Task<IActionResult> DisableModule(string meetingID, string moduleName)
+        public async Task<IActionResult> DisableModule(string meetingID, string moduleName, bool redirect = true)
         {
             if (string.IsNullOrEmpty(meetingID) || string.IsNullOrEmpty(moduleName))
             {
@@ -85,7 +88,8 @@ namespace BigBlueButtonAPI.Controllers
                 var result = await client.DisableModuleAsync(new DisableModuleRequest
                 {
                     meetingID = meetingID,
-                    moduleName = moduleName
+                    moduleName = moduleName,
+                    redirect = redirect
                 });
 
                 if (result.returncode == "FAILED")
@@ -100,6 +104,7 @@ namespace BigBlueButtonAPI.Controllers
                     MeetingID = meetingID,
                     ModuleName = moduleName,
                     IsDisabled = true,
+                    Redirect = redirect,
                     Message = "Module disabled successfully."
                 }), "application/xml");
             }
@@ -110,109 +115,10 @@ namespace BigBlueButtonAPI.Controllers
                     ex.Message));
             }
         }
+
         #endregion
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //#region Enable Module
-        //[HttpPost("enable")]
-        //public async Task<IActionResult> EnableModule(string meetingID, string moduleName)
-        //{
-        //    if (string.IsNullOrEmpty(meetingID) || string.IsNullOrEmpty(moduleName))
-        //    {
-        //        return Content(XmlHelper.XmlErrorResponse("Meeting ID and Module Name cannot be null or empty.", "Invalid input."), "application/xml");
-        //    }
-
-        //    try
-        //    {
-        //        var result = await client.EnableModuleAsync(new EnableModuleRequest
-        //        {
-        //            meetingID = meetingID,
-        //            moduleName = moduleName
-        //        });
-
-        //        if (result.returncode == "FAILED")
-        //        {
-        //            return Content(XmlHelper.XmlErrorResponse("Failed to enable module.", result.message), "application/xml");
-        //        }
-
-        //        var successResponse = new
-        //        {
-        //            message = "Module enabled successfully.",
-        //            result
-        //        };
-
-        //        return Content(XmlHelper.ToXml(successResponse), "application/xml");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, XmlHelper.ToXml(new
-        //        {
-        //            message = "An error occurred while enabling the module.",
-        //            details = ex.Message
-        //        }));
-        //    }
-        //}
-        //#endregion
-
-        //#region Disable Module
-        //[HttpPost("disable")]
-        //public async Task<IActionResult> DisableModule(string meetingID, string moduleName)
-        //{
-        //    if (string.IsNullOrEmpty(meetingID) || string.IsNullOrEmpty(moduleName))
-        //    {
-        //        return Content(XmlHelper.XmlErrorResponse("Meeting ID and Module Name cannot be null or empty.", "Invalid input."), "application/xml");
-        //    }
-
-        //    try
-        //    {
-        //        var result = await client.DisableModuleAsync(new DisableModuleRequest
-        //        {
-        //            meetingID = meetingID,
-        //            moduleName = moduleName
-        //        });
-
-        //        if (result.returncode == "FAILED")
-        //        {
-        //            return Content(XmlHelper.XmlErrorResponse("Failed to disable module.", result.message), "application/xml");
-        //        }
-
-        //        var successResponse = new
-        //        {
-        //            message = "Module disabled successfully.",
-        //            result
-        //        };
-
-        //        return Content(XmlHelper.ToXml(successResponse), "application/xml");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, XmlHelper.ToXml(new
-        //        {
-        //            message = "An error occurred while disabling the module.",
-        //            details = ex.Message
-        //        }));
-        //    }
-        //}
-        //#endregion
     }
 }
