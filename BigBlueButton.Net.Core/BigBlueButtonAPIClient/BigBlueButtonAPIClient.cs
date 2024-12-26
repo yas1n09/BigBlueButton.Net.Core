@@ -387,5 +387,11 @@ namespace BigBlueButton.Net.Core.BigBlueButtonAPIClient
 
         #endregion
 
+        #region Slides
+
+      
+
+        #endregion
+
     }
 }
