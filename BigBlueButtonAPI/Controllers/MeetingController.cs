@@ -1,10 +1,9 @@
 ﻿using BigBlueButton.Net.Core.BigBlueButtonAPIClient;
-using BigBlueButton.Net.Core.DTO;
 using BigBlueButton.Net.Core.DTOs.MeetingDto;
 using BigBlueButton.Net.Core.Enums;
 using BigBlueButton.Net.Core.Helpers;
 using BigBlueButton.Net.Core.Requests;
-using BigBlueButtonAPI.DTOs;
+using BigBlueButton.Net.Core.Responses;
 using Microsoft.AspNetCore.Mvc;
 using MeetingStatusDto = BigBlueButton.Net.Core.DTOs.MeetingDto.MeetingStatusDto;
 
@@ -138,7 +137,7 @@ namespace BigBlueButtonAPI.Controllers
 
                 var joinUrl = client.GetJoinMeetingUrl(joinRequest);
 
-                return Content(XmlHelper.ToXml(new JoinMeetingResponseDto
+                return Content(XmlHelper.ToXml(new JoinMeetingResponse
                 {
                     JoinUrl = joinUrl,
                     Redirect = redirect,

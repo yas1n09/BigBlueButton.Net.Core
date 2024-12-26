@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BigBlueButton.Net.Core.DTO
+namespace BigBlueButton.Net.Core.DTOs
 {
     public class ErrorResponseDto
     {

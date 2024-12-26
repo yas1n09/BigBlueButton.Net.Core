@@ -3,7 +3,6 @@ using BigBlueButton.Net.Core.DTOs.BreakoutRoomDto;
 using BigBlueButton.Net.Core.Enums;
 using BigBlueButton.Net.Core.Helpers;
 using BigBlueButton.Net.Core.Requests;
-using BigBlueButtonAPI.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using BreakoutRoomErrorResponseDto = BigBlueButton.Net.Core.DTOs.BreakoutRoomDto.BreakoutRoomErrorResponseDto;

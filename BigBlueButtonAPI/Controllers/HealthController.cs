@@ -3,9 +3,9 @@ using BigBlueButton.Net.Core.DTOs.HealthDto;
 using BigBlueButton.Net.Core.Enums;
 using BigBlueButton.Net.Core.Helpers;
 using BigBlueButton.Net.Core.Requests;
-using BigBlueButtonAPI.DTOs;
+using BigBlueButton.Net.Core.Responses;
 using Microsoft.AspNetCore.Mvc;
-using ApiHealthResponseDto = BigBlueButtonAPI.DTOs.ApiHealthResponseDto;
+//using ApiHealthResponseDto = BigBlueButtonAPI.DTOs.ApiHealthResponseDto;
 
 namespace BigBlueButtonAPI.Controllers
 {
@@ -60,7 +60,7 @@ namespace BigBlueButtonAPI.Controllers
                 var meetingsResult = await client.GetMeetingsAsync();
                 var activeMeetingCount = meetingsResult?.meetings?.Count ?? 0;
 
-                var response = new ApiHealthResponseDto
+                var response = new ApiHealthResponse
                 {
                     Status = setupOk ? "OK" : "ERROR",
                     Message = setupOk ? "API is healthy and reachable." : "API health check failed. Please check the configuration or server.",
@@ -72,7 +72,7 @@ namespace BigBlueButtonAPI.Controllers
             }
             catch (Exception ex)
             {
-                var errorResponse = new ApiHealthResponseDto
+                var errorResponse = new ApiHealthResponse
                 {
                     Status = "ERROR",
                     Message = "An error occurred while checking API health.",
